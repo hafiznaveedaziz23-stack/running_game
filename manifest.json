@@ -1,9 +1,24 @@
 {
-  "name": "RUNNING RUSH 3D",
-  "short_name": "Running Rush 3D",
+  "name": "RUNNING RUSH 3D - Bali",
+  "short_name": "RUNNING RUSH 3D",
+  "description": "Running Rush 3D - Bali Runner by AZIZ Games",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#000000",
+  "orientation": "portrait",
+  "background_color": "#0b3d91",
   "theme_color": "#FFD700",
-  "icons": [{"src": "icon.png","sizes": "512x512","type": "image/png"}]
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
 }
