@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>RUNNING RUSH 3D</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+</head>
+<body>
+<div id="game"></div>
+
+<!-- HUD -->
+<div id="hud" style="display:none">
+  <div class="pill">🏃 <span id="score">0</span></div>
+  <div class="pill">🪙 <span id="coins">0</span></div>
+  <div class="pill">🏆 <span id="best">0</span></div>
+  <div class="pill" id="powerPill" style="display:none">⚡ <span id="powerName">MAGNET</span> <span id="powerTime">10</span>s</div>
+</div>
+<button id="pauseBtn" style="display:none">⏸️</button>
+<div id="msg"></div>
+
+<!-- CONTROLS -->
+<div id="controls" style="display:none">
+  <button onclick="Game.move(-1)">◀️</button>
+  <button id="jumpBtn" onclick="Game.jump()">⬆️</button>
+  <button onclick="Game.slide()">⬇️</button>
+  <button onclick="Game.move(1)">▶️</button>
+</div>
+
+<!-- SPLASH + MENU -->
+<div id="menu">
+  <div class="logo">🏃</div>
+  <h1>RUNNING<br><span>RUSH 3D</span></h1>
+  <p id="welcome">Welcome Player • ID: <b id="playerId">RR-0001</b></p>
+  <input id="userName" placeholder="Apna Naam Likho - e.g. Naveed" value="Naveed" />
+  <div class="chars">
+    <div class="char active" onclick="Game.selectChar(this,'👦','Ayan')">👦<small>Ayan</small></div>
+    <div class="char" onclick="Game.selectChar(this,'👧','Ayesha')">👧<small>Ayesha</small></div>
+    <div class="char" onclick="Game.selectChar(this,'🧑','Ali')">🧑<small>Ali</small></div>
+    <div class="char" onclick="Game.selectChar(this,'👩','Sara')">👩<small>Sara</small></div>
+  </div>
+  <button class="btn" onclick="Game.start()">▶️ PLAY NOW</button>
+  <button class="btn btn2" onclick="UI.show('shop')">🛒 SHOP • <span id="menuCoins">0</span> Coins</button>
+  <button class="btn btn2" onclick="UI.show('multi')">👥 MULTIPLAYER • TOURNAMENT</button>
+  <button class="btn btn2" onclick="UI.show('leader')">🏆 LEADERBOARD</button>
+  <button class="btn btn2" onclick="UI.show('challenges')">🎯 CHALLENGES</button>
+  <button class="btn btn2" onclick="UI.show('profile')">👤 PROFILE</button>
+  <button class="btn btn3" onclick="Shop.daily()">🎁 DAILY REWARD +50</button>
+  <div class="stats">
+    <div class="stat">Coins<b id="totalCoins">0</b></div>
+    <div class="stat">Best<b id="menuBest">0</b></div>
+    <div class="stat">Runs<b id="totalRuns">0</b></div>
+    <div class="stat">Distance<b id="totalDist">0m</b></div>
+  </div>
+  <p class="foot">Offline Mode ✅ • 60 FPS • Made by AZIZ Games</p>
+</div>
+
+<!-- SHOP -->
+<div id="shop" class="page" style="display:none">
+  <h2>🛒 SHOP</h2><p>Coins: <b id="shopCoins">0</b> | <button onclick="UI.show('menu')">⬅️ Back</button></p>
+  <div id="shopList"></div>
+  <h3>📜 Transaction History</h3><div id="history"></div>
+</div>
+
+<!-- MULTIPLAYER -->
+<div id="multi" class="page" style="display:none">
+  <h2>👥 MULTIPLAYER & TOURNAMENT</h2>
+  <button onclick="UI.show('menu')">⬅️ Back</button>
+  <div class="card"><h3>🏆 Daily Tournament - Today</h3><p>Prize: 1000 Coins • Ends in 05:59:00</p><button class="btn" onclick="Multi.joinTournament()">JOIN TOURNAMENT</button><p id="tourStatus">Not Joined</p></div>
+  <div class="card"><h3>👥 Private Room</h3><input id="roomCode" placeholder="Room Code - e.g. AZIZ123"><button onclick="Multi.joinRoom()">JOIN ROOM</button><button onclick="Multi.createRoom()">CREATE ROOM</button><p id="roomStatus"></p></div>
+  <div class="card"><h3>👥 Friends</h3><p>Naveed • Ali • Sara • Ayan <button onclick="Multi.invite()">+ Invite</button></p><p id="inviteStatus"></p></div>
+  <div class="card"><h3>⚠️ Note</h3><p>Real Online Multiplayer ke liye Firebase chahiye. Abhi ye Local Lobby hai, 4 players tak ke liye. Firebase connect karte hi real ban jayega.</p></div>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="leader" class="page" style="display:none">
+  <h2>🏆 GLOBAL LEADERBOARD</h2><button onclick="UI.show('menu')">⬅️ Back</button>
+  <div id="leaderList"></div>
+</div>
+
+<!-- CHALLENGES -->
+<div id="challenges" class="page" style="display:none">
+  <h2>🎯 CHALLENGES</h2><button onclick="UI.show('menu')">⬅️ Back</button>
+  <div id="challengeList"></div>
+</div>
+
+<!-- PROFILE -->
+<div id="profile" class="page" style="display:none">
+  <h2>👤 PLAYER PROFILE</h2><button onclick="UI.show('menu')">⬅️ Back</button>
+  <div class="card"><p>Player ID: <b id="pId"></b></p><p>Name: <b id="pName"></b></p><p>Total Coins: <b id="pCoins"></b></p><p>Best Score: <b id="pBest"></b></p><p>Longest Distance: <b id="pDist"></b></p><p>Total Runs: <b id="pRuns"></b></p><p>Wins: <b id="pWins"></b></p><p>Owned Items: <b id="pOwned"></b></p><p>Achievements: <b id="pAch"></b></p></div>
+</div>
+
+<!-- GAME OVER -->
+<div id="over" style="display:none">
+  <h2>🚨 PLAYER OUT!</h2><p>Police ne pakar liya!</p>
+  <div class="big" id="finalScore">0</div>
+  <p>Coins: <b id="finalCoins">0</b> | Distance: <b id="finalDist">0m</b></p>
+  <p id="newBest" style="display:none;color:#00E676">🏆 NEW BEST!</p>
+  <button class="btn" onclick="Game.revive()">💛 REVIVE - 50 Coins</button>
+  <button class="btn btn2" onclick="Game.start()">🔄 PLAY AGAIN</button>
+  <button class="btn btn3" onclick="UI.show('menu')">🏠 MENU</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="shop.js"></script>
+<script src="multiplayer.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
