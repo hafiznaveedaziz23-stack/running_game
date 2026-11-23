@@ -1,5 +1,5 @@
-const CACHE='running-rush-3d-v1';
-const FILES=['index.html','manifest.json','icon.png'];
+const CACHE='running-rush-3d-v2';
+const FILES=['index.html','manifest.json','icon.png','game.js','shop.js','multiplayer.js','style.css'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)));
   self.skipWaiting();
