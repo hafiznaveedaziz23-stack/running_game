@@ -67,8 +67,7 @@ canvas{display:block}
 <div id="game"></div>
 <div id="hud"><div class="pill">SCORE <span id="score">0</span> <small id="mult">x1</small></div><div class="pill">🪙 <span id="coins">0</span></div><div class="pill">⏸️ <span id="pauseBtn2" onclick="togglePause()">II</span></div></div>
 <div id="msg"></div>
-<div id="controls"><button onclick="Game.move(-1)">◀️</button><button id="jumpBtn" onclick="Game.jump()">⬆️</button><button onclick="Game.slide()">⬇️</button><button onclick="Game.move(1)">▶️</button></div>
-
+<div id="controls" style="display:none"></div>
 <!-- LOADING -->
 <div id="loading"><h1>RUNNING<br><span>RUSH 3D</span><br><small style="font-size:18px">BALI</small></h1><div id="bar"><div id="fill"></div></div><div id="loadPct">0%</div><p style="margin-top:10px;opacity:.8">AZIZ Games • Loading...</p></div>
 
@@ -191,3 +190,9 @@ const Game={
       m=new THREE.Mesh(new THREE.BoxGeometry(2.4,1.0,0.8), new THREE.MeshLambertMaterial({color:0x9b59b6})); m.position.set(this.lanes[Math.floor(Math.random()*3)],2.3,z); m.userData.type='overhead';
     }
     this.scene.add(m); this.obs.pu
+<script>
+setTimeout(function(){
+  var l=document.getElementById('loading');
+  if(l) l.style.display='none';
+},3000);
+</script>
