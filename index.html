@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RUNNING RUSH 3D - BALI</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00c6ff">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{overflow:hidden;background:#000;font-family:Arial,sans-serif;touch-action:none}
+#gameCanvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#loading{position:fixed;inset:0;background:linear-gradient(180deg,#00c6ff,#0072ff);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;color:#fff;text-align:center;padding:20px}
+#loading h1{font-size:32px;letter-spacing:2px;text-shadow:0 4px 0 rgba(0,0,0,.2)}
+#loading p{margin-top:6px;opacity:.9}
+#barWrap{width:80%;max-width:320px;height:18px;background:rgba(255,255,255,.3);border-radius:20px;margin-top:18px;overflow:hidden}
+#bar{height:100%;width:0%;background:#ffde59;border-radius:20px;transition:width .2s}
+#loadText{margin-top:10px;font-weight:bold}
+#hud{position:fixed;top:12px;left:12px;right:12px;display:none;justify-content:space-between;z-index:10;color:#fff;font-weight:bold;text-shadow:0 2px 4px #000}
+#hud div{background:rgba(0,0,0,.45);padding:8px 14px;border-radius:20px}
+#menu{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:20;background:linear-gradient(180deg,rgba(0,198,255,.85),rgba(0,114,255,.9));color:#fff;text-align:center;padding:20px}
+#menu h1{font-size:36px;line-height:1.1}
+#menu p{margin:10px 0 18px;opacity:.9}
+.btn{background:#ffde59;color:#000;border:none;padding:14px 32px;font-size:18px;font-weight:900;border-radius:30px;box-shadow:0 6px 0 #e6b800;margin:6px;min-width:220px}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #e6b800}
+.btn2{background:#fff}
+#gameOver{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:30;background:rgba(0,0,0,.75);color:#fff;text-align:center;padding:20px}
+#gameOver h2{font-size:34px;color:#ffde59}
+#scoreBig{font-size:22px;margin:10px 0}
+#hint{position:fixed;bottom:18px;left:0;right:0;text-align:center;color:#fff;font-size:13px;z-index:10;text-shadow:0 1px 3px #000;display:none}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div style="font-size:60px">🏝️</div>
+  <h1>RUNNING RUSH 3D</h1>
+  <p>BALI • SWIPE TO RUN</p>
+  <div id="barWrap"><div id="bar"></div></div>
+  <div id="loadText">Loading... 0%</div>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="hud">
+  <div>🏃 Score: <span id="score">0</span></div>
+  <div>🪙 <span id="coins">0</span> &nbsp; ❤️ <span id="lives">3</span></div>
+</div>
+
+<div id="menu">
+  <div style="font-size:60px">🏝️</div>
+  <h1>RUNNING<br>RUSH 3D</h1>
+  <p>BALI ADVENTURE • OFFLINE READY</p>
+  <button class="btn" onclick="startGame()">▶ PLAY NOW</button>
+  <button class="btn btn2" onclick="showHow()">❓ HOW TO PLAY</button>
+  <div id="how" style="display:none;background:rgba(0,0,0,.3);padding:12px;border-radius:12px;margin-top:10px;font-size:14px;line-height:1.6">⬅️ ➡️ Swipe = Left / Right<br>⬆️ Swipe Up = Jump<br>⬇️ Swipe Down = Slide<br>🪙 Coin lo, 🪨 Pathar se bacho</div>
+</div>
+
+<div id="gameOver">
+  <h2>GAME OVER!</h2>
+  <div id="scoreBig">Score: 0</div>
+  <button class="btn" onclick="startGame()">🔄 PLAY AGAIN</button>
+  <button class="btn btn2" onclick="showMenu()">🏠 MENU</button>
+</div>
+
+<div id="hint">⬅️ Swipe Left / Right &nbsp; • &nbsp; ⬆️ Jump &nbsp; • &nbsp; ⬇️ Slide</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ===== RUNNING RUSH 3D - BALI - ONLINE + OFFLINE =====
+let scene,camera,renderer,player,clock;
+let lanes=[-2.2,0,2.2], lane=1, isJumping=false, isSliding=false, vy=0, slideTimer=0;
+let obstacles=[], coinsArr=[], trees=[], speed=0.22, score=0, coinCount=0, lives=3, playing=false, gameStarted=false;
+let bar=document.getElementById('bar'), loadText=document.getElementById('loadText');
+
+// Fake loading - 0% wala masla khatam, hamesha 100% tak jayegi
+let p=0;
+let loadTimer=setInterval(()=>{
+  p+=Math.floor(Math.random()*18)+8;
+  if(p>=100){p=100;clearInterval(loadTimer);setTimeout(finishLoading,300);}
+  bar.style.width=p+'%';
+  loadText.textContent='Loading... '+p+'%';
+},120);
+
+function finishLoading(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('menu').style.display='flex';
+  init3D();
+}
+
+function showHow(){ let h=document.getElementById('how'); h.style.display=h.style.display==='none'?'block':'none'; }
+function showMenu(){ document.getElementById('gameOver').style.display='none'; document.getElementById('menu').style.display='flex'; document.getElementById('hud').style.display='none'; document.getElementById('hint').style.display='none'; playing=false; }
+
+function init3D(){
+  if(!window.THREE){ alert('Net slow hai, dobara kholo. Three.js load nahi hua.'); return; }
+  scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x87ceeb);
+  scene.fog=new THREE.Fog(0x87ceeb,18,55);
+  camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.1,100);
+  camera.position.set(0,4.2,7.5);
+  renderer=new THREE.WebGLRenderer({canvas:document.getElementById('gameCanvas'),antialias:true});
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.shadowMap.enabled=true;
+  let sun=new THREE.DirectionalLight(0xffffff,1.1); sun.position.set(5,10,5); scene.add(sun);
+  scene.add(new THREE.AmbientLight(0xffffff,0.6));
+  // Road
+  let road=new THREE.Mesh(new THREE.BoxGeometry(8,0.2,120),new THREE.MeshLambertMaterial({color:0x444444}));
+  road.position.set(0,-0.1,-40); scene.add(road);
+  // Side grass / beach
+  let left=new THREE.Mesh(new THREE.BoxGeometry(20,0.1,120),new THREE.MeshLambertMaterial({color:0x2ecc71}));
+  left.position.set(-14,-0.15,-40); scene.add(left);
+  let right=left.clone(); right.position.x=14; right.material=new THREE.MeshLambertMaterial({color:0xf1c40f}); scene.add(right);
+  // Lane lines
+  for(let i=-1;i<=1;i++){
+    let line=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.05,120),new THREE.MeshBasicMaterial({color:0xffffff}));
+    line.position.set(i*2.2+1.1,0.02,-40); scene.add(line);
+  }
+  // Player - Bali Runner
+  player=new THREE.Group();
+  let body=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.1,0.5),new THREE.MeshLambertMaterial({color:0xff4757}));
+  body.position.y=0.9; player.add(body);
+  let head=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.6,0.6),new THREE.MeshLambertMaterial({color:0xffd8a8}));
+  head.position.y=1.75; player.add(head);
+  let cap=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.2,0.7),new THREE.MeshLambertMaterial({color:0x00c6ff}));
+  cap.position.y=2.1; player.add(cap);
+  player.position.set(0,0,0); scene.add(player);
+  clock=new THREE.Clock();
+  animate();
+  // Touch / Swipe - NO BUTTONS, ONLY SWIPE
+  let sx=0, sy=0;
+  document.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(!playing) return;
+    let dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>Math.abs(dy)){
+      if(dx>30 && lane<2) lane++;
+      if(dx<-30 && lane>0) lane--;
+    }else{
+      if(dy<-30)
